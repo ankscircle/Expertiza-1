@@ -19,19 +19,19 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="user_test.rb" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/test/unit/user_test.rb">
+      <file leaf-file-name="users_controller_test.rb" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/test/functional/users_controller_test.rb">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="95" column="15" selection-start="3161" selection-end="3161" vertical-scroll-proportion="0.0">
+            <state line="15" column="15" selection-start="572" selection-end="572" vertical-scroll-proportion="-0.2915952">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="users_controller_test.rb" pinned="false" current="true" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/test/functional/users_controller_test.rb">
+      <file leaf-file-name="user_test.rb" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test/unit/user_test.rb">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="75" column="54" selection-start="3194" selection-end="3194" vertical-scroll-proportion="0.75814754">
+            <state line="9" column="40" selection-start="416" selection-end="416" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -178,7 +178,7 @@
       <recent name="C:\Users\Avinash\Desktop\OOLS\Expertiza\expertiza-expertiza-jkidd-2.2.2-527-ge73c83a\expertiza-expertiza-e73c83a\test\unit" />
     </key>
   </component>
-  <component name="RunManager" selected="Test::Unit/Shoulda/Minitest.users_controller_test">
+  <component name="RunManager" selected="Test::Unit/Shoulda/Minitest.UserTest">
     <configuration default="false" name="test_add_instructor" type="TestUnitRunConfigurationType" factoryName="Test::Unit/Shoulda/Minitest" temporary="true">
       <predefined_log_file id="RUBY_TESTUNIT" enabled="true" />
       <module name="expertiza-expertiza-e73c83a" />
@@ -539,9 +539,9 @@
     </list>
     <recent_temporary>
       <list size="5">
-        <item index="0" class="java.lang.String" itemvalue="Test::Unit/Shoulda/Minitest.users_controller_test" />
-        <item index="1" class="java.lang.String" itemvalue="Test::Unit/Shoulda/Minitest.CourseTeamTest" />
-        <item index="2" class="java.lang.String" itemvalue="Test::Unit/Shoulda/Minitest.UserTest" />
+        <item index="0" class="java.lang.String" itemvalue="Test::Unit/Shoulda/Minitest.UserTest" />
+        <item index="1" class="java.lang.String" itemvalue="Test::Unit/Shoulda/Minitest.users_controller_test" />
+        <item index="2" class="java.lang.String" itemvalue="Test::Unit/Shoulda/Minitest.CourseTeamTest" />
         <item index="3" class="java.lang.String" itemvalue="Test::Unit/Shoulda/Minitest.test_get" />
         <item index="4" class="java.lang.String" itemvalue="Test::Unit/Shoulda/Minitest.test_add_instructor" />
       </list>
@@ -575,14 +575,14 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1382" height="744" extended-state="7" />
-    <editor active="false" />
+    <frame x="-8" y="-8" width="1382" height="744" extended-state="6" />
+    <editor active="true" />
     <layout>
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="true" content_ui="tabs" />
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.22727273" sideWeight="0.6430921" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.22727273" sideWeight="0.6430921" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.61513156" sideWeight="0.5098784" order="10" side_tool="true" content_ui="tabs" />
@@ -711,13 +711,6 @@
         <state line="91" column="43" selection-start="3063" selection-end="3082" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/unit/user_test.rb">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="95" column="15" selection-start="3161" selection-end="3161" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/test/unit/course_team_test.rb">
       <provider selected="true" editor-type-id="text-editor">
         <state line="13" column="40" selection-start="309" selection-end="309" vertical-scroll-proportion="0.0">
@@ -725,9 +718,16 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/test/unit/user_test.rb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="9" column="40" selection-start="416" selection-end="416" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/test/functional/users_controller_test.rb">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="75" column="54" selection-start="3194" selection-end="3194" vertical-scroll-proportion="0.75814754">
+        <state line="15" column="15" selection-start="572" selection-end="572" vertical-scroll-proportion="-0.2915952">
           <folding />
         </state>
       </provider>

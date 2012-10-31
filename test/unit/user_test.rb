@@ -2,86 +2,64 @@ require File.dirname(__FILE__) + '/../test_helper'
 
 class UserTest < ActiveSupport::TestCase
   fixtures :users
-  
-  def test_random_password_generation_for_new_users
-    u = User.new(:email => "new@guy.co", :name => 'newguy')
+
+  def test_new_user_creation  #We will check if a new user can be added successfully or not
+    u = User.new(:email => "userapp@gmail.com", :name => "userapp", :clear_password => "userapppass",:clear_password_confirmation=>"userapppass")
+    u.save!
+    assert_equal "userapppass", u.clear_password
+  end
+
+  def test_new_user_with_blank_password_for_random_pass_generation   #We will check if a new user with blank password is assigned new random password
+    u = User.new(:email => "user@app.com", :name => 'newguy')
     u.save!
     assert u.clear_password.present?
   end
-  
-  def test_no_random_password_generation_for_new_users_with_specified_password
-    u = User.new(:email => "new@guy.co", :name => 'newguy', :clear_password => 'mypass', :clear_password_confirmation => 'mypass')
+
+  def test_user_for_uniqueness_of_name     #We will check if a new user when added should have unique name
+    u = User.new(:email => "public@gmail.com", :name => "student1", :clear_password => "userapppass",:clear_password_confirmation=>"userapppass")
+    assert !u.save
+    assert_equal I18n.translate('activerecord.errors.messages')[:taken], u.errors.on(:name)
+  end
+
+  def test_to_return_correct_author_name    #When requested correct authorname should be returned
+    u = User.new(:email => "userapp@gmail.com", :name => "userapp",:fullname=>"New UserApp", :clear_password => "userapppass",:clear_password_confirmation=>"userapppass")
     u.save!
-    assert_equal "mypass", u.clear_password
+    assert_equal "New UserApp", u.get_author_name
   end
-  
-  # 101 add a new user 
-  def test_add_user
-    user = User.new
-    user.name = "testStudent1"
-    user.fullname = "test_Student_1"
-    user.clear_password = "testStudent1"
-    user.clear_password_confirmation = "testStudent1"
-    user.email = "testStudent1@foo.edu"
-    user.role_id = "1"
-    user.save! # an exception is thrown if the user is invalid
-  end 
-  
-  # 102 Add a user with existing name 
-  def test_add_user_with_exist_name
-    user = User.new
-    user.name = 'student1'
-    user.clear_password = "testStudent1"
-    user.clear_password_confirmation = "testStudent1"
-    user.fullname = "student1_fullname",
-    user.role_id = "3"
-    assert !user.save
-    assert_equal I18n.translate('activerecord.errors.messages')[:taken], user.errors.on(:name)
+
+  def test_user_to_find_by_login        #When requested correct authorname should be returned
+    u = User.new(:email => "userapp@gmail.com", :name => "userapp",:fullname=>"New UserApp", :clear_password => "userapppass",:clear_password_confirmation=>"userapppass")
+    u.save!
+    assert_equal u, User.find_by_login("userapp@gmail.com")
   end
-  
-  # 103 Check valid user name and password   
-  def test_add_user_with_invalid_name
-    user = User.new
-    assert !user.valid?
-    assert user.errors.invalid?(:name)
-    #assert user.errors.invalid?(:password)
-  end
-  # 202 edit a user name to an invalid name (e.g. blank)
-  def test_update_user_with_invalid_name
-    user = User.find_by_login('student1')
-    user.name = "";
-    assert !user.valid?
-  end
-  # 203 Change a user name to an existing name.
-  def test_update_user_with_existing_name
-    user = User.find_by_login('student1')
-    user.name = "student2"
-    assert !user.valid?
-  end  
-  
-  def test_generate_keys
+
+  #borrowed from unit test cases present in expertiza project- this was important to check
+  # this test checks if the generate_keys function works properly/not
+  def testing_user_key_generation
+    u = User.new(:email => "userapp@gmail.com", :name => "userapp",:fullname=>"New UserApp", :clear_password => "userapppass",:clear_password_confirmation=>"userapppass")
+    u.save!
     user = users(:student1)
-    private_key = user.generate_keys
-    assert_not_nil private_key
+    privatekeyforuser = user.generate_keys
+    assert_not_nil privatekeyforuser
     assert_not_nil user.digital_certificate
 
-    # verify that we can sign something using the private key and then decrypt it using the public key
-    hash_data = Digest::SHA1.digest(Time.now.utc.strftime("%Y-%m-%d %H:%M:%S"))
-    clear_text = decrypt(hash_data, private_key, user.digital_certificate)
-    assert_equal hash_data, clear_text
-    
+    hash_data_user = Digest::SHA1.digest(Time.now.utc.strftime("%Y-%m-%d %H:%M:%S"))
+    clear_text_user = decrypt(hash_data_user, privatekeyforuser, user.digital_certificate)
+    assert_equal hash_data_user, clear_text_user
+
     # try decrypting a signature made using an old private key
     user.generate_keys
-    clear_text = decrypt(hash_data, private_key, user.digital_certificate)
-    assert_not_equal hash_data, clear_text    
+    clear_text_user = decrypt(hash_data_user, privatekeyforuser, user.digital_certificate)
+    assert_not_equal hash_data_user, clear_text_user
+
   end
-  
+  #borrowed from unit test cases present in expertiza project- this was important to check
   def decrypt(hash_data, private_key, digital_certificate)
     private_key2 = OpenSSL::PKey::RSA.new(private_key)
     cipher_text = Base64.encode64(private_key2.private_encrypt(hash_data))
     cert = OpenSSL::X509::Certificate.new(digital_certificate)
-    public_key1 = cert.public_key 
-    public_key = OpenSSL::PKey::RSA.new(public_key1)    
+    public_key1 = cert.public_key
+    public_key = OpenSSL::PKey::RSA.new(public_key1)
     begin
       clear_text = public_key.public_decrypt(Base64.decode64(cipher_text))
     rescue
@@ -91,66 +69,14 @@ class UserTest < ActiveSupport::TestCase
     clear_text
   end
 
-=begin
-  def test_get_available_users
-    # student1 should be available to instructor1 based on their roles
-    avail_users_like_student1 = users(:instructor1).get_available_users('student1')
-    assert_equal 1, avail_users_like_student1.size
-    assert_equal "student1", avail_users_like_student1.first.name
-  end
-=end
-  
-  def test_emails_must_be_valid
-    u = User.new(:email => "new@guy.co", :name => 'newguy')
-    assert u.valid?, "Should be valid with a valid email"
-    
-    u.email = "not@valid"
-    assert !u.valid?, "Should not be valid with an invalid email"
-  end
-  
-  def test_emails_need_not_be_unique
-    used_email = users(:admin).email
-    u = User.new(:email => used_email, :name => 'newguy')
+  def test_emails_can_be_duplicated     #Check if the email can be duplicated
+    existing_email = users(:student1).email
+    u = User.new(:email => existing_email, :name => 'newappuser')
     assert u.valid?, "User should be valid with a duplicate email"
   end
 
-  def test_check_email
-    user = User.new
-    user.name = "testStudent1"
-    user.fullname = "test_Student_1"
-    user.clear_password = "testStudent1"
-    user.clear_password_confirmation = "testStudent1"
-    user.email = "testStudent1@foo.edu"
-    user.role_id = "1"
-    user.save! # an exception is thrown if the user is invalid
 
-    email = MailerHelper::send_mail_to_user(user,"Test Email","user_welcome",user.clear_password)
-    assert !ActionMailer::Base.deliveries.empty?         # Checks if the mail has been queued in the delivery queue
-
-    assert_equal [user.email], email.to                  # Checks if the mail is being sent to proper user
-    assert_equal "Test Email", email.subject             # Checks if the mail subject is the same
-
-  end
-
-  def test_user_for_uniqueness_of_name
-    u = User.new(:email => "public@gmail.com", :name => "student1", :clear_password => "userapppass",:clear_password_confirmation=>"userapppass")
-    assert !u.save
-    assert_equal I18n.translate('activerecord.errors.messages')[:taken], u.errors.on(:name)
-  end
-
-  def test_to_return_correct_author_name
-    u = User.new(:email => "userapp@gmail.com", :name => "userapp",:fullname=>"New UserApp", :clear_password => "userapppass",:clear_password_confirmation=>"userapppass")
-    u.save!
-    assert_equal "New UserApp", u.get_author_name
-  end
-
-  def test_user_to_find_by_login
-    u = User.new(:email => "userapp@gmail.com", :name => "userapp",:fullname=>"New UserApp", :clear_password => "userapppass",:clear_password_confirmation=>"userapppass")
-    u.save!
-    assert_equal u, User.find_by_login("userapp@gmail.com")
-  end
-
-  def test_check_welcome_email
+  def test_check_welcome_email       #test if welcome email is sent properly
     user = User.new
     user.name = "newappuser"
     user.fullname = "Newapp User"
@@ -168,7 +94,7 @@ class UserTest < ActiveSupport::TestCase
 
   end
 
-  def test_email_validation
+  def test_email_validation           #Test if the email address is entered correctly with proper format
     user = User.new
     user.name = "newappuser"
     user.fullname = "Newapp User"
@@ -181,19 +107,18 @@ class UserTest < ActiveSupport::TestCase
 
   end
 
-  def test_try_to_create_user_with_invalid_name_assert_false
+  def test_try_to_create_user_with_invalid_name_assert_false  #creating users with invalid name should fail
     user = User.new(:name =>"")
     assert !user.valid?
     assert user.errors.invalid?(:name)
   end
-
-  def test_try_to_update_user_with_invalid_name_assert_false
+  def test_try_to_update_user_with_invalid_name_assert_false      #updating users with invalid name should fail
     user = User.find_by_login('student2')
     user.name = "";
     assert !user.valid?
   end
 
-  def test_email_cannot_be_blank
+  def test_email_cannot_be_blank     #creating user with blank email should fail
     user = User.new
     user.name = "newappuser"
     user.fullname = "Newapp User"
