@@ -33,7 +33,7 @@ class UsersControllerTest < ActionController::TestCase
   end
 
   # 201 edit a user�s profile
-  def test_update
+  def test_update      #test whether user profile can be edited
     num_users_previous = User.find(:all).count
     post :update, :id => @testUser, :user => { :clear_password => "",
       :name => "student1",
@@ -41,7 +41,6 @@ class UsersControllerTest < ActionController::TestCase
       :email => "student1test@test.test"}
     updatedUser = User.find_by_name("student1")
     assert_equal updatedUser.email, "student1test@test.test"
-#   assert_nil User.find(:first, :conditions => "name='#{@user.name}'")
     assert_response :redirect
     assert_equal 'User was successfully updated.', flash[:notice]
     assert_redirected_to :action => 'show', :id => @testUser
@@ -52,12 +51,8 @@ class UsersControllerTest < ActionController::TestCase
   def test_update_with_invalid_name
     num_users_previous = User.find(:all).count
     @user = User.find(@testUser)
-    # It will raise an error while execute render method in controller
-    # Because the goldberg variables didn't been initialized  in the test framework
-#   assert_raise (ActionView::TemplateError){
     post :update, :id => @testUser, :user => { :clear_password => "",
           :name => "" }
-#         }
     assert !assigns(:user).valid?                                    
     assert_template 'users/edit'
     assert_equal num_users_previous, User.find(:all).count
@@ -67,22 +62,17 @@ class UsersControllerTest < ActionController::TestCase
   def test_update_with_incorrect_password
     num_users_previous = User.find(:all).count
     @user = User.find(@testUser)
-    # It will raise an error while execute render method in controller
-    # Because the goldberg variables didn't been initialized  in the test framework
-#   assert_raise (ActionView::TemplateError){
     post :update, :id => @testUser, :user => { :clear_password => "test",
       :clear_password_confirmation => "nottest"}
-#   }
     assert !assigns(:user).valid?                                    
     assert_template 'users/edit'
     assert_equal num_users_previous, User.find(:all).count
   end
 
-  # test removing a user
+  # test removing/destroying a user
   def test_destroy
     num_users_previous = User.find(:all).count
     user = User.find(users(:student9).id)
-    
     numUsers = User.count
     post :destroy,:id => user.id, :force => 1
     assert_response :redirect
@@ -90,7 +80,8 @@ class UsersControllerTest < ActionController::TestCase
     assert_equal numUsers-1, User.count
     assert_equal num_users_previous-1, User.find(:all).count
   end
-  
+
+  #test generation of a new RSA public/private key pair and X509 digital certificate
   def test_keys
     user = User.find(users(:student1).id)
     assert_nil user.digital_certificate
@@ -100,17 +91,17 @@ class UsersControllerTest < ActionController::TestCase
     assert_not_nil user.digital_certificate
   end
 
+  #test whether list of required users can be obtained
   def test_should_get_data_and_index
     get :list, :letter => 's', :page => 2, :num_users => 1
-
     assert_response :success
     assert assigns(:users)
     assert_select 'div.pagination', true
   end
 
-  def test_should_not_show_pagination_links_if_all_users_are_shown
+  #test should not show pagination links if all users are shown
+  def test_show_pagination_links
     get :list, :letter => 's', :num_users => 4
-
     assert_response :success
     assert assigns(:users)
     assert_select 'div.pagination', false
@@ -162,9 +153,6 @@ class UsersControllerTest < ActionController::TestCase
   def test_update_with_invalid_email
     num_users_previous = User.find(:all).count
     @user = User.find(@testUser)
-    # It will raise an error while execute render method in controller
-    # Because the goldberg variables didn't been initialized  in the test framework
-    #   assert_raise (ActionView::TemplateError){
     post :update, :id => @testUser, :user => { :clear_password => "",
                                                :email => "" }
     assert !assigns(:user).valid?
@@ -196,7 +184,6 @@ class UsersControllerTest < ActionController::TestCase
                                                :fullname => "new StudentName",
                                                :email => ""}
     assert !assigns(:user).valid?
-    #assert_template 'users/edit'
     assert_response :success
     assert_equal num_users_previous, User.find(:all).count
   end
@@ -209,48 +196,50 @@ class UsersControllerTest < ActionController::TestCase
                                                :fullname => "new StudentName",
                                                :email => "newstudenttest@test.test"}
     assert !assigns(:user).valid?
-    #assert_template 'users/edit'
     assert_equal num_users_previous, User.find(:all).count
   end
 
+  #test successful rendering of list since current user is Super-Administrator
   def test_index
     get 'index'
     assert_response :success
     assert_template :list
   end
 
+  #passed in user name should match the auto complete suggestions
   def test_auto_complete_for_user_name
     get :auto_complete_for_user_name, :user => 'student'
     assert_not_nil @response.body=~ /student/
   end
 
+  #passed in username should be available for editing
   def test_show_selection
     get :show_selection, {:user =>  { :name => 'student5' } }
     assert_response :success
   end
 
+  #test for non-existing user and flash note
   def test_show_selection_does_not_exist
     get :show_selection, {:user =>  { :name => 'student' } }
     assert_redirected_to :action => 'list'
     assert_equal 'student does not exist.', flash[:note]
   end
 
+  #test the assigned role for user
   def test_show
     get :show, {:id => @testUser}
     assert_response :success
+    assert_equal assigns(:role).id, User.find(@testUser).role_id
   end
 
+  #test for non-existent user and redirection
   def test_show_nil
     get :show
     assert_response :redirect
     assert_redirected_to :action => 'drill', :controller => 'tree_display'
   end
 
-  def test_keys_get
-    get :keys, {:id => @testUser}
-    assert_response :success
-  end
-
+  #test for redirection if user is nil
   def test_keys_nil
     get :keys
     assert_response :redirect
