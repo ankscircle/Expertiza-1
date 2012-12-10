@@ -1,5 +1,5 @@
 class User < ActiveRecord::Base
-  
+
   acts_as_authentic do |config|
     config.validates_uniqueness_of_email_field_options = {:if => lambda { false }} # Don't validate email uniqueness
     config.password_field = :clear_password
@@ -13,13 +13,13 @@ class User < ActiveRecord::Base
   has_many :participants, :class_name => 'Participant', :foreign_key => 'user_id', :dependent => :destroy
   # FIXME:          :class_name should be AssignmentParticipant, probably. In most cases it's used that way. But all?
   has_many :assignments, :through => :participants
-  
+
   belongs_to :parent, :class_name => 'User', :foreign_key => 'parent_id'
   belongs_to :role
-  
+
   has_many :teams_users, :dependent => :destroy
   has_many :teams, :through => :teams_users
-  
+
   validates_presence_of :name
   validates_presence_of :email, :message => "can't be blank; use anything@mailinator.com for test users"
   validates_format_of :email, :with => /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i, :allow_blank => true
@@ -32,8 +32,8 @@ class User < ActiveRecord::Base
   def list_mine(object_type, user_id)
     object_type.find(:all, :conditions => ["instructor_id = ?", user_id])
   end
-  
-  def get_available_users(name)    
+
+  def get_available_users(name)
     lesser_roles = role.get_parents
     all_users = User.find(:all, :conditions => ['name LIKE ?', "#{name}%"], :limit => 20) # higher limit, since we're filtering
     visible_users = all_users.select{|user| lesser_roles.include? user.role}
@@ -82,27 +82,27 @@ class User < ActiveRecord::Base
   end
 
   def self.import(row,session,id = nil)
-      if row.length != 4
-       raise ArgumentError, "Not enough items" 
-      end    
-      user = User.find_by_name(row[0])    
-      
-      if user == nil
-        attributes = ImportFileHelper::define_attributes(row)
-        user = ImportFileHelper::create_new_user(attributes,session)
-      else
-        user.clear_password = row[3].strip
-        user.email = row[2].strip
-        user.fullname = row[1].strip
-        user.parent_id = (session[:user]).id
-        user.save
-      end
-  end  
-  
+    if row.length != 4
+      raise ArgumentError, "Not enough items"
+    end
+    user = User.find_by_name(row[0])
+
+    if user == nil
+      attributes = ImportFileHelper::define_attributes(row)
+      user = ImportFileHelper::create_new_user(attributes,session)
+    else
+      user.clear_password = row[3].strip
+      user.email = row[2].strip
+      user.fullname = row[1].strip
+      user.parent_id = (session[:user]).id
+      user.save
+    end
+  end
+
   def get_author_name
     return self.fullname
   end
-    
+
   def self.yesorno(elt)
     if elt==true
       "yes"
@@ -111,37 +111,37 @@ class User < ActiveRecord::Base
     else
       ""
     end
-  end    
-    
+  end
+
   # locate User based on provided login.
   # If user supplies e-mail or name, the
   # helper will try to find that User account.
   def self.find_by_login(login)
-      user = User.find_by_email(login)
-      if user == nil
-         items = login.split("@")
-         shortName = items[0]
-         userList = User.find(:all, {:conditions=> ["name =?",shortName]})
-         if userList != nil && userList.length == 1
-            user = userList.first            
-         end
+    user = User.find_by_email(login)
+    if user == nil
+      items = login.split("@")
+      shortName = items[0]
+      userList = User.find(:all, {:conditions=> ["name =?",shortName]})
+      if userList != nil && userList.length == 1
+        user = userList.first
       end
-      return user     
-  end 
-  
-  def set_instructor (new_assign)  
-    new_assign.instructor_id = self.id  
+    end
+    return user
   end
-  
+
+  def set_instructor (new_assign)
+    new_assign.instructor_id = self.id
+  end
+
   def get_instructor
     self.id
   end
-  
-  def set_courses_to_assignment 
-    @courses = Course.find_all_by_instructor_id(self.id, :order => 'name')    
+
+  def set_courses_to_assignment
+    @courses = Course.find_all_by_instructor_id(self.id, :order => 'name')
   end
 
-  # generate a new RSA public/private key pair and create our own X509 digital certificate which we 
+  # generate a new RSA public/private key pair and create our own X509 digital certificate which we
   # save in the database. The private key is returned by the method but not saved.
   def generate_keys
     # check if we are replacing a digital certificate already generated
@@ -157,28 +157,28 @@ class User < ActiveRecord::Base
     cert.version = 1
     cert.subject = cert.issuer = OpenSSL::X509::Name.parse("/C="+self.id.to_s)
     cert.public_key = new_public
-    
+
     # certificate will be valid for 1 year
     cert.not_before = Time.now
     cert.not_after = Time.now+3600*24*365
-    
+
     # self-sign (we trust our own certificates) it using the private key
     cert.sign(new_key, OpenSSL::Digest::SHA1.new)
-    
+
     # convert to a textual form and save it in the database
     self.digital_certificate = cert.to_pem
     self.save
-    
+
     # when replacing an existing key, update any digital signatures made previously with the new key
     if (replacing_key)
       participants = AssignmentParticipant.find_all_by_user_id(self.id)
       for participant in participants
         if (participant.permission_granted && !participant.digital_signature.nil?)
-          AssignmentParticipant.grant_publishing_rights(new_private, [ participant ]) 
+          AssignmentParticipant.grant_publishing_rights(new_private, [ participant ])
         end
       end
     end
-    
+
     # return the new private key
     new_private
   end
@@ -235,27 +235,203 @@ class User < ActiveRecord::Base
   end
 
   def self.from_params(params)
-      if params[:user_id]
-        user = User.find(params[:user_id])
-      else
-        user = User.find_by_name(params[:user][:name])
-      end
-      if user.nil?
-         newuser = url_for :controller => 'users', :action => 'new'
-         raise "Please <a href='#{newuser}'>create an account</a> for this user to continue."
-      end
-      return user
+    if params[:user_id]
+      user = User.find(params[:user_id])
+    else
+      user = User.find_by_name(params[:user][:name])
+    end
+    if user.nil?
+      newuser = url_for :controller => 'users', :action => 'new'
+      raise "Please <a href='#{newuser}'>create an account</a> for this user to continue."
+    end
+    return user
   end
 
   def is_teaching_assistant_for?(student)
     return false if self.role.name != 'Teaching Assistant'
     return false if student.role.name != 'Student'
     Course.all.each do |c|
-      return true if 
-        c.participants.all(:conditions => "user_id=#{student.id}").size > 0 &&
-        c.participants.all(:conditions => "user_id=#{id}").size > 0
+      return true if
+          c.participants.all(:conditions => "user_id=#{student.id}").size > 0 &&
+              c.participants.all(:conditions => "user_id=#{id}").size > 0
     end
     false
+  end
+
+  def self.get_users_created_by_id(user)
+    storeUser = Hash.new
+    condition = "parent_id like ?" #default used when clicking on letters
+
+    if user.role.name == "Super-Administrator"
+      direct = User.find(:all,:order => 'name',:conditions=> [condition,user.id])
+      if !direct.to_a.empty?
+        direct.each do |dummy|
+          if dummy.role.name == "Administrator"
+            #storeUser[dummy.id] = User.find(:all,:conditions=> [condition,dummy.id])
+            directInner = User.find(:all,:order => 'name',:conditions=> [condition,dummy.id])
+
+            if  !directInner.to_a.empty?
+              storeUser[dummy.id] = directInner
+              directInner.each do |dummy2|
+                if dummy2.role.name == "Instructor"
+                  tempHash = User.find(:all,:order => 'name',:conditions=> [condition,dummy2.id])
+                  if !tempHash.to_a.empty?
+                    storeUser[dummy2.id] = tempHash
+                  end
+                end
+
+              end
+            end
+          else if dummy.role.name == "Instructor"
+                 tempHash = User.find(:all,:order => 'name',:conditions=> [condition,dummy.id])
+                 if !tempHash.to_a.empty?
+                   storeUser[dummy.id] = tempHash
+                 end
+
+               end
+
+          end
+        end
+      end
+    end
+    if user.role.name == "Administrator"
+      direct = User.find(:all,:order => 'name',:conditions=> [condition,user.id])
+      i = 0
+      if !direct.nil?
+        direct.each do |dummy|
+          if dummy.role.name == "Instructor"
+            tempHash = User.find(:all,:order => 'name',:conditions=> [condition,dummy.id])
+            if !tempHash.to_a.empty?
+              storeUser[dummy.id] = tempHash
+            end
+
+          end
+        end
+
+      end
+    end
+    if user.role.name == "Instructor"
+      tempHash = User.find(:all,:order => 'name',:conditions=> [condition,user.id])
+      if !tempHash.to_a.empty?
+        storeUser[user.id] = tempHash
+      end
+
+    end
+    storeUser
+  end
+  def self.get_team_participation(user)
+    storeParticipation = Hash.new
+    teamHash = Hash.new
+    condition = "parent_id like ?" #default used when clicking on letters
+    userList = []
+    if user.role.name == "Super-Administrator"
+      direct = User.find(:all,:conditions=> [condition,user.id])
+      if !direct.nil?
+            direct.each do |dummy|
+              if dummy.role.name == "Administrator"
+                directInner = User.find(:all,:conditions=> [condition,dummy.id])
+                if !(directInner.nil?)
+                  directInner.each do |dummy2|
+                    if dummy2.role.name == "Instructor"
+                      fetchUsers = User.find(:all,:conditions=> [condition,dummy2.id])
+                      fetchUsers.each do |studentID|
+                          storeParticipation[studentID.id] = TeamsUser.find(:all,:conditions => ['user_id = ?',studentID.id])
+                          storeParticipation[studentID.id].each do  |team|
+                            teamTuple = TeamsUser.find(:all,:conditions =>['team_id = ?',team.team_id])
+                            stringUserName = nil
+                            teamTuple.each do |oneTuple|
+                              if stringUserName.nil?
+                                stringUserName =  (User.find_by_id(oneTuple.user_id)).name
+                              else
+                                stringUserName = stringUserName + ","+(User.find_by_id(oneTuple.user_id)).name
+                              end
+                            end
+                            teamHash[team.team_id] = stringUserName
+
+                          end
+                          userList << studentID.id
+                      end
+                    end
+                    end
+                  end
+                else if dummy.role.name == "Instructor"
+                       fetchUsers = User.find(:all,:conditions=> [condition,dummy.id])
+                       fetchUsers.each do |studentID|
+                           storeParticipation[studentID.id] = TeamsUser.find(:all,:conditions => ['user_id = ?',studentID.id])
+                           storeParticipation[studentID.id].each do  |team|
+                             teamTuple = TeamsUser.find(:all,:conditions =>['team_id = ?',team.team_id])
+                             stringUserName = nil
+                             teamTuple.each do |oneTuple|
+                               if stringUserName.nil?
+                                 stringUserName =  (User.find_by_id(oneTuple.user_id)).name
+                               else
+                                 stringUserName = stringUserName + ","+(User.find_by_id(oneTuple.user_id)).name
+                               end                     end
+                             teamHash[team.team_id] = stringUserName
+
+                           end
+                           userList << studentID.id
+
+                       end
+                     end
+                end
+
+            end
+          end
+        end
+
+    if user.role.name == "Administrator"
+      direct = User.find(:all,:conditions=> [condition,user.id])
+      i = 0
+      if !direct.nil?
+        direct.each do |dummy|
+          if dummy.role.name == "Instructor"
+            fetchUsers = User.find(:all,:conditions=> [condition,dummy.id])
+            fetchUsers.each do |studentID|
+                storeParticipation[studentID.id] = TeamsUser.find(:all,:conditions => ['user_id = ?',studentID])
+                storeParticipation[studentID.id].each do  |team|
+                  teamTuple = TeamsUser.find(:all,:conditions =>['team_id = ?',team.team_id])
+                  stringUserName = nil
+                  teamTuple.each do |oneTuple|
+                    if stringUserName.nil?
+                      stringUserName =  (User.find_by_id(oneTuple.user_id)).name
+                    else
+                      stringUserName = stringUserName + ","+(User.find_by_id(oneTuple.user_id)).name
+                    end                end
+                  teamHash[team.team_id] = stringUserName
+                end
+                userList << studentID.id
+
+
+            end
+          end
+        end
+      end
+    end
+    if user.role.name == "Instructor"
+      fetchUsers =  User.find(:all,:conditions=> [condition,user.id])
+      if !fetchUsers.to_a.empty?
+        fetchUsers.each do |studentID|
+            storeParticipation[studentID.id] = TeamsUser.find(:all,:conditions => ['user_id = ?',studentID.id])
+              storeParticipation[studentID.id].each do  |team|
+                teamTuple = TeamsUser.find(:all,:conditions =>['team_id = ?',team.team_id])
+                stringUserName = nil
+                teamTuple.each do |oneTuple|
+                  if stringUserName.nil?
+                    stringUserName =  (User.find_by_id(oneTuple.user_id)).name
+                  else
+                    stringUserName = stringUserName + ","+(User.find_by_id(oneTuple.user_id)).name
+                  end
+                end
+                teamHash[team.team_id] = stringUserName
+              end
+            userList << studentID.id
+
+
+        end
+      end
+    end
+    return storeParticipation,teamHash,userList
   end
 
 end

@@ -10,7 +10,6 @@ content_home:
 
 content_expired:
     markup_style_id: <%= Fixtures.identify(:markup_textile) %>
-    markup_style_id: <%= Fixtures.identify(:markup_textile) %>
     name: expired
     title: Session Expired
     permission_id: <%= Fixtures.identify(:permission_public_pages_view) %>
